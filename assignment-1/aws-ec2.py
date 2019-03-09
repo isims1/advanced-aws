@@ -27,7 +27,7 @@ def getChoice():
         ['vpc-delete', 'Delete your custom VPC.'],
         ['ip-associate', 'Associate your IP address to your EC2 instance.'],
         ['ip-disassociate', 'Disassociate your IP address from you EC2 instance.'],
-        ['iam-create-user', 'Create a new user.'],
+        ['iam-create-user', 'Create a new user with an Access Key.'],
         ['iam-attach-policy', 'Attach EC2 policy to a user.'],
         ['quit', 'Release all resources and exit.']]
 
@@ -369,5 +369,4 @@ if choice=="quit":
 
             iam.delete_access_key(AccessKeyId=accessKeyID, UserName=nm)
             iam.delete_user(UserName=nm)
-    print("All resources were released."
-)
+    print("All resources were released.")
