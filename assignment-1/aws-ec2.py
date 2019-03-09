@@ -1,13 +1,14 @@
 import sys
 import boto3
 import json
-from botocore.exception import ClientError
+from botocore.exceptions import ClientError
 
 ec2ID = ""
 vpcID = ""
 attached = False
 associate = False
 created_users = []
+attached_policies = []
 
 def getChoice():
 
@@ -210,6 +211,16 @@ def iamCreateUser(user_name):
     except ClientError as e:
         return e.response
 
+def iamAttachPolicy(user_name):
+    try:
+        iam = boto3.client('iam')
+        response = iam.attach_user_policy(UserName=user_name, PolicyArn='arn:aws:iam::aws:policy/AmazonEC2FullAccess')
+
+        return response
+
+    except ClientError as e:
+        return e.response
+
 choice = getChoice()
 
 while choice!="quit":
@@ -324,6 +335,15 @@ while choice!="quit":
         response = iamCreateUser(nm_inpt)
         print(json.dumps(response, indent=4, sort_keys=False, default=str))
         created_users.append(nm_inpt)
+    elif choice=="iam-attach-policy":
+        print("Enter the user's name.")
+        nm_inpt = input(">>> ")
+        if nm_inpt in created_users:
+            response = iamAttachPolicy(nm_inpt)
+            print(json.dumps(response, indent=4, sort_keys=False, default=str))
+            attached_policies.append(nm_inpt)
+        else:
+            print("You entered an invalid user name")
     else:
         print("Invalid entry, please choose again")
         print("\n")
@@ -343,6 +363,9 @@ if choice=="quit":
             paginator = iam.get_paginator('list_access_keys')
             for response in paginator.paginate(UserName=nm):
                 accessKeyID = response.get('AccessKeyMetadata', {})[0].get('AccessKeyId')
+
+            if nm in attached_policies:
+                iam.detach_user_policy(UserName=nm, PolicyArn='arn:aws:iam::aws:policy/AmazonEC2FullAccess')
 
             iam.delete_access_key(AccessKeyId=accessKeyID, UserName=nm)
             iam.delete_user(UserName=nm)
